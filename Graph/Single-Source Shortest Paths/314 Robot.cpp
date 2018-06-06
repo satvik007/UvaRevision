@@ -47,12 +47,23 @@ int main() {
         else if(direction == "south") dir = 2;
         else if(direction == "west") dir = 3;
 
+        function <bool(int x, int y)> valid = [&](int x, int y) {
+            int f1 = 0, f2 = 0, f3 = 0, f4 = 0;
+            f1 = a[x - 1][y - 1];
+            f2 = a[x - 1][y];
+            f3 = a[x][y - 1];
+            f4 = a[x][y];
+            if(x <= 0 || y <= 0 || x >= n || y >= m) return false;
+            return !(f1 || f2 || f3 || f4);
+        };
+
         function <int()> bfs = [&] () {
 
-            if(sx == dx && sy == dy) return 0;
-
             Data cur = {sx, sy, dir};
-            queue <Data> q; q.push(cur);
+            queue <Data> q;
+
+            if(valid(sx, sy)) q.push(cur);
+
             memset(dist, -1, sizeof dist);
             dist[sx][sy][dir] = 0;
             Data temp;
@@ -61,25 +72,27 @@ int main() {
 
             while(!q.empty()) {
                 cur = q.front(); q.pop();
+                if(cur.x == dx && cur.y == dy) return dist[cur.x][cur.y][cur.dir];
                 temp = cur;
-                for(int i = 1; i <= 3; i++) {
-                    temp.dir = (cur.dir + i) % 4;
-                    if(dist[temp.x][temp.y][temp.dir] == -1) {
-                        dist[temp.x][temp.y][temp.dir] = dist[cur.x][cur.y][cur.dir] + 2 - abs(i - 2);
-                        q.push(temp);
-                    }
+
+                temp.dir = (cur.dir + 1) % 4;
+                if(dist[temp.x][temp.y][temp.dir] == -1) {
+                    dist[temp.x][temp.y][temp.dir] = dist[cur.x][cur.y][cur.dir] + 1;
+                    q.push(temp);
                 }
+
+                temp.dir = (cur.dir + 3) % 4;
+                if(dist[temp.x][temp.y][temp.dir] == -1) {
+                    dist[temp.x][temp.y][temp.dir] = dist[cur.x][cur.y][cur.dir] + 1;
+                    q.push(temp);
+                }
+
                 temp = cur;
                 for(int i = 1; i <= 3; i++) {
                     int tx = cur.x + dr[cur.dir] * i;
                     int ty = cur.y + dc[cur.dir] * i;
-                    int f1 = 0, f2 = 0, f3 = 0, f4 = 0;
-                    f1 = a[tx - 1][ty - 1];
-                    f2 = a[tx - 1][ty];
-                    f3 = a[tx][ty - 1];
-                    f4 = a[tx][ty];
 
-                    if(tx > 0 && ty > 0 && tx < n && ty < m && !(f1 || f2 || f3 || f4)) {
+                    if(valid(tx, ty)) {
                         if(dist[tx][ty][cur.dir] == -1) {
                             dist[tx][ty][cur.dir] = dist[cur.x][cur.y][cur.dir] + 1;
                             temp.x = tx, temp.y = ty;
